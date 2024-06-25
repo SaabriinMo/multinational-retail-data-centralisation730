@@ -1,0 +1,6 @@
+creds/*
+data
+*/__pycache__
+*.pyc
+*.ipynb
+*.csv
