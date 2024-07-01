@@ -155,6 +155,7 @@ class DataCleaning:
                 the cleaned dataframe 
         
         '''
+        self.replace_string(df,'card_number', "?", "")
         self.clean_card_number(df)
         self.clean_invalid_date(df, 'date_payment_confirmed')
         df.dropna(inplace=True)
@@ -205,7 +206,8 @@ class DataCleaning:
                 the cleaned dataframe  
         
         '''
-        df.drop(columns=["level_0", "first_name", "last_name", '1'],axis=1, inplace=True)
+        df.drop(columns=["level_0", 'index', "first_name", "last_name", '1'],errors='ignore', axis=1, inplace=True)
+        df = df.reset_index()
         return df
 
 
@@ -242,6 +244,18 @@ class DataCleaning:
     
     def clean_event_date(self, df):
         '''
+        This function cleans the events data Dataframe which was imported from url (From AWS s3). 
+        It goes through each column and remove NaN Values, erronous data and etc.
+
+        Parameters:
+        ----------  
+            df: DataFrame
+                the dataframe to be cleaned   
+
+        Returns:
+        --------
+             df: DataFrame
+                the cleaned dataframe
         '''
         self.clean_invalid_date(df, 'timestamp')
         self.clean_year(df)
@@ -478,7 +492,7 @@ class DataCleaning:
             column_name: string
                 the column name
         '''
-        df[column_name] = df[column_name].str.replace('[a-zA-Z]', ' ', regex=True)
+        df[column_name] = df[column_name].str.replace('[a-zA-Z]', '', regex=True)
         df[column_name] = df[column_name].str.replace('    ', 'NULL') 
         return df
     
@@ -539,7 +553,7 @@ class DataCleaning:
             string_to: string
                 the string to replace the string_from with 
         '''
-        df[column_name] = df[column_name].str.replace(string_from, string_to)
+        df[column_name] = df[column_name].astype(str).str.replace(string_from, string_to)
         
     @staticmethod
     def check_credit_card_length(card_number):
@@ -555,7 +569,7 @@ class DataCleaning:
         --------
             np.nan or card number: [NaN, int]
         '''
-        if len(str(card_number)) <= 10:
+        if len(str(card_number)) <= 8:
             return np.nan
         return card_number
 

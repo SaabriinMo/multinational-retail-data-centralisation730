@@ -7,7 +7,7 @@ from botocore.exceptions import NoCredentialsError, ClientError
 class DataExtractor:
 
     def __init__(self):
-        self.header = {"x-api-key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX" }
+        self.__header = {"x-api-key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX" }
 
     def read_rds_table(self, table_name, engine):
          df = pd.read_sql_table(table_name, engine)
@@ -37,7 +37,7 @@ class DataExtractor:
 
 
     def list_number_of_stores(self, url):
-        number_of_stores = requests.get(url, headers=self.header)
+        number_of_stores = requests.get(url, headers=self.__header)
         return number_of_stores.json()['number_stores']
     
     def get_date_data(self, url):
@@ -54,7 +54,7 @@ class DataExtractor:
         list_of_stores = []
         for store in range(0,number_of_stores):
             url = f'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store}'
-            new_response = requests.get(url, headers=self.header)
+            new_response = requests.get(url, headers=self.__header)
             list_of_stores.append(new_response.json())
         df = pd.DataFrame(list_of_stores)
         return df
