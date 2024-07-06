@@ -21,14 +21,14 @@ License Information
 6. [File Structure of the Project](#file-structure-of-the-project)
 7. [License Information](#license-information)
 
-## project-description
+## Project Description
 Currently, the sales data is spread across many different data sources making it not easily accessible or analysable by current members of the team.
 
 This project aims to collect sales data from different sources, clean it and upload the new data into a postgresql database in order to perform some analysis. These data sources include using AWS s3 buckets, AWS RDS, and  APIs and etc.
 
 The main motivation behind this project is to understand how data different sources are combined into one source.
 
-### Main technologies used
+### Main technologies used
 
 Python Library
     - Data Cleaning: Pandas, Numpy, and re
