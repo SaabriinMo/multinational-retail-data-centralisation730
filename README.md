@@ -1,16 +1,5 @@
 # Multinational Retail Data Centralisation
 
-Project Description
-
-    Main Technologies Used
-
-Data Cleaning
-Entity Relationship Diagram (ERD)
-Data Analysis
-Installation Instructions
-File Structure of the Project
-License Information
-
 ## Table of Contents
 1. [Project Description](#project-description)
     - [Main Technologies Used](#main-technologies-used)
@@ -30,10 +19,10 @@ The main motivation behind this project is to understand how data different sour
 
 ### Main technologies used
 
-Python Library
-    - Data Cleaning: Pandas, Numpy, and re
-    - Data extraction: tabula, requests, boto3(AWS), botocore(AWS)
-    - Database utils: sqlalchemy, yaml
+Python Library:
+1. Data Cleaning: **Pandas, Numpy, and re**
+2. Data extraction: **tabula, requests, boto3(AWS), botocore(AWS)**
+3. Database utils: **sqlalchemy**, **yaml**
 
 ![aws](https://img.shields.io/badge/Amazon_AWS-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white) ![postgres](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white) ![python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
 
@@ -113,11 +102,5 @@ conda env create -f environment.yml
 5 directories, 24 files
 ```
 
-
-Project Title
-Table of Contents, if the README file is long
-A description of the project: what it does, the aim of the project, and what you learned
-Installation instructions
-Usage instructions
-File structure of the project
-License information
+## License Information
+..
