@@ -25,21 +25,12 @@ class DataCleaning:
 
     clean_event_date(df):
         Clean date event data from url (AWS s3 bucket)
-    
-    clean_address(df)
-        Cleans the address column from a DataFrame
 
     clean_longitude(df)
          Cleans the address column from a DataFrame
 
     clean_store_type(df)
         Cleans the store type column from a DataFrame
-
-    clean_contient(df):
-        Cleans the contient column from a DataFrame
-
-    clean_country_code(df)
-        Cleans the country code column from a DataFrame
 
     clean_email(df)
         Cleans the email column from a DataFrame
@@ -129,7 +120,7 @@ class DataCleaning:
         '''
         self.clean_invalid_date(df, 'date_of_birth')
         self.clean_email(df)
-        self.clean_address(df)
+        self.replace_string(df, 'address', '\n', ' ')
         self.clean_invalid_date(df, 'join_date')
         self.replace_string(df, 'country_code', 'GG', 'G')
         self.clean_phone_number(df, r'\+44\(0\)|\+1|\+49\(0\)')
@@ -227,8 +218,7 @@ class DataCleaning:
                 the cleaned dataframe
         
         '''
-        df.drop('lat', axis=1, inplace=True)
-        self.clean_address(df)
+        self.replace_string(df, 'address', '\n', ' ')
         self.clean_longitude(df)
         self.clean_non_numerical_data(df, 'locality')
         self.clean_latitude(df)
@@ -237,9 +227,10 @@ class DataCleaning:
         self.clear_null(df, 'staff_numbers')
         self.clean_invalid_date(df, 'opening_date')
         self.clean_store_type(df)
-        self.clean_contient(df)
+        self.replace_string(df, 'continent', 'ee', '')
+        self.replace_string(df, 'country_code', 'GG', 'G')
         self.clean_country_code(df)
-        df.dropna(inplace=True)
+        df.dropna(subset=['staff_numbers', 'opening_date', 'country_code', 'continent'], inplace=True)
         return df
     
     def clean_event_date(self, df):
@@ -265,22 +256,6 @@ class DataCleaning:
         return df
 
 
-    def clean_address(self, df):
-        '''
-        This function cleans the address column by removing '\n' and replacing it with a space
-
-        Parameters:
-        ----------  
-            df: DataFrame
-                the dataframe to be cleaned 
-
-        Returns:
-        --------
-             df: DataFrame
-                the cleaned dataframe   
-        
-        '''
-        df['address'] = df['address'].str.replace('\n', ' ')
 
     def clean_longitude(self,df):
         '''
@@ -321,6 +296,11 @@ class DataCleaning:
         df[column_name] = df[column_name].apply(pd.to_datetime,
                                                 infer_datetime_format=True,
                                                 errors='coerce')
+        
+        if column_name == 'timestamp':
+            df[column_name] = df[column_name].apply(pd.to_datetime,
+                                                errors='coerce').dt.strftime('%H:%M:%S')
+            
     def clean_latitude(self, df):
         '''
         This function cleans the latitude column and checks if it follows 
@@ -348,32 +328,6 @@ class DataCleaning:
         df['store_type'] = df['store_type'].astype(str)
         df.loc[df['store_type'].str.match(regex), 'store_type'] = np.nan
         self.clear_null(df, 'store_type')
-
-    def clean_contient(self, df):
-        '''
-        This function cleans the contient column by removing 'ee' and 
-        replacing it with nothing
-
-        Parameters:
-        ----------  
-            df: DataFrame
-                the dataframe to be cleaned    
-        
-        '''
-        df['continent'] = df['continent'].str.replace("ee", "")
-
-    def clean_country_code(self, df):
-        '''
-        This function cleans the contient column by removing 'GG' and 
-        replacing it with 'G'
-
-        Parameters:
-        ----------  
-            df: DataFrame
-                the dataframe to be cleaned    
-        
-        '''
-        df['country_code'] = df['country_code'].str.replace("GG", "G")
 
     def clean_email(self, df):
         '''
@@ -589,25 +543,33 @@ class DataCleaning:
                 formatted metric in kilograms
 
         '''
+        metrics_conversion = {
+            'kg' : 1,
+            'g': 0.001,
+            'ml': 0.001,
+            'oz': 0.0283495
+        }
         result = 0
-        if 'ml' in metric_string:
-            value = metric_string.replace('ml', "")
-            result = float(value) / 1000
-        elif 'x' in metric_string and 'g' in metric_string:
+        metric = metric_string[-2:] if metric_string[-2:] in metrics_conversion else metric_string[-1:]
+
+        if metric in metrics_conversion and 'x' in metric_string:
             x, y = metric_string.split('x')
             x = float(x)
-            y = y.replace('.', "")
-            y = float(y.replace('g', ""))
-            result = (x * y) / 1000
-        elif 'g' in metric_string and 'k' not in metric_string:
-            value = metric_string.replace('g', "")
-            value = value.replace(".", "")
-            result = float(value) / 1000
-        elif 'oz' in metric_string:
-            value = metric_string.replace('oz', "").replace(".", "")
-            result = float(value) * 0.0283495
+            y = float(y.strip()[:-2] if y.strip()[:-2] in metrics_conversion else y.strip()[:-1])
+            result = x * y * metrics_conversion[metric]
 
-        return metric_string if 'kg' in metric_string else str(result) + "kg" 
+       
+        elif metric == ".":
+            remove_point_metric = metric_string.replace(".", "")
+            metric = remove_point_metric[-2:].strip()
+            value = remove_point_metric.replace(metric, "")
+            result = float(value) * metrics_conversion[metric]
+
+        else:
+            value = metric_string.replace(metric, "")
+            result = float(value) * metrics_conversion[metric]
+
+        return str(result) + "kg"
 
 
     @staticmethod
@@ -681,3 +643,8 @@ class DataCleaning:
                 return day_string
         except ValueError:
             return np.nan
+        
+
+if __name__ == "__main__":
+    cleaning_data = DataCleaning()
+    print(cleaning_data.convert_to_grams("77g"))

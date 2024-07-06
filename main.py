@@ -53,17 +53,18 @@ def main():
 
     # upload the resulting cleaned dataframe to postgres
     database_connector.upload_to_db(user_data_df, 'dim_users', 'creds/db_creds.yaml')
-    database_connector.upload_to_db(card_detail_data_df, 'dim_card_details', 'creds/db_creds.yaml')
+    database_connector.upload_to_db(card_detail_data_df, 'dim_card_details', 'creds/db_creds.yaml')#
     database_connector.upload_to_db(stores_df, 'dim_store_details', 'creds/db_creds.yaml')
     database_connector.upload_to_db(product_data_df, 'dim_products', 'creds/db_creds.yaml')
     database_connector.upload_to_db(order_data_df, 'orders_table', 'creds/db_creds.yaml')
     database_connector.upload_to_db(date_event_df, 'dim_date_times', 'creds/db_creds.yaml')
 
 
-    return user_data_df, card_detail_data_df, stores_df, order_data_df, product_data_df, date_event_df
+    return date_event_df
 
 
 if __name__ == "__main__":
     start_time = time.time()
-    user_data_df, card_detail_data_df, stores_df, order_data_df, product_data_df, date_event_df = main()
+    date_event_df = main()
+    print(date_event_df)
     print(f"--- {time.time() - start_time} seconds ---" )
