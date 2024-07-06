@@ -2,6 +2,7 @@ import pandas as pd
 import tabula
 import requests
 import boto3
+import yaml
 from botocore.exceptions import NoCredentialsError, ClientError
 
 class DataExtractor:
@@ -40,7 +41,20 @@ class DataExtractor:
     '''
 
     def __init__(self):
-        self.__header = {"x-api-key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX" }
+        self.__header = self.read_yaml_file("creds/api_creds.yaml")
+        self.__store_number = self.read_yaml_file("creds/api_creds.yaml")['retrieve_store_total']
+        self.__store_url = self.read_yaml_file("creds/api_creds.yaml")['retrieve_store_data']
+        self.__s3_bucket_name = self.read_yaml_file("creds/api_creds.yaml")['data_handling_s3']
+        self.__s3_file = self.read_yaml_file("creds/api_creds.yaml")['file_s3']
+
+    def read_yaml_file(self, api_yaml):
+        try:
+            with open(api_yaml, 'r') as file:
+                api_creds = yaml.safe_load(file)
+                return api_creds
+        except yaml.YAMLError as e:
+                    print(f"Error reading YAML file: {e}")
+                    return None
 
     def read_rds_table(self, table_name, engine):
          '''
@@ -99,7 +113,7 @@ class DataExtractor:
         '''
         try:
             s3 = boto3.client('s3')
-            s3.download_file('data-handling-public', 'products.csv', './products.csv')
+            s3.download_file(self.__s3_bucket_name, self.__s3_file, './products.csv')
             df = pd.read_csv("./products.csv")
             return df
 
@@ -113,7 +127,7 @@ class DataExtractor:
                 print("An error occurred:", e)
 
 
-    def list_number_of_stores(self, url):
+    def list_number_of_stores(self):
         '''
         This function get the number of stores from the url
 
@@ -128,8 +142,12 @@ class DataExtractor:
                 number of stores
 
         '''
-        number_of_stores = requests.get(url, headers=self.__header)
-        return number_of_stores.json()['number_stores']
+        try:
+            number_of_stores = requests.get(self.__store_number, headers=self.__header)
+            return number_of_stores.json()['number_stores']
+        except requests.RequestException as e:
+            print(f"Error: {e}")
+
     
     def retrieve_stores_data(self, number_of_stores):
         '''
@@ -148,7 +166,7 @@ class DataExtractor:
         '''
         list_of_stores = []
         for store in range(0,number_of_stores):
-            url = f'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store}'
+            url = f'{self.__store_url}{store}'
             new_response = requests.get(url, headers=self.__header)
             list_of_stores.append(new_response.json())
         df = pd.DataFrame(list_of_stores)
@@ -168,20 +186,27 @@ class DataExtractor:
             df: DataFrame
                 the dataframe to be cleaned
         '''
-        date_event_data = requests.get(url)
-        df = pd.DataFrame()
-        for key, values in date_event_data.json().items():
-            df_temp = pd.DataFrame.from_dict(values, orient='index', columns=[key])
-            df = df_temp.join(df)
-        df = df[df.columns[::-1]]
-        return df
-    
+        try:
+            date_event_data = requests.get(url)
+            df = pd.DataFrame()
+            for key, values in date_event_data.json().items():
+                df_temp = pd.DataFrame.from_dict(values, orient='index', columns=[key])
+                df = df_temp.join(df)
+            df = df[df.columns[::-1]]
+            return df 
+        except requests.RequestException as e:
+            print(f"Error: {e}")
         
 
 
 if __name__ == "__main__":
     data_extractor = DataExtractor()
+    # number_of_stores = data_extractor.list_number_of_stores()
+    # print(number_of_stores)
+    # df = data_extractor.retrieve_stores_data(number_of_stores)
+    # print(df)
+    # print(number_of_stores)
+    #print(number_of_stores)
+    #print(data_extractor.retrieve_stores_data())
     df = data_extractor.extract_from_s3()
     print(df)
-
-    #print(data_extractor.list_number_of_stores("https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores"))

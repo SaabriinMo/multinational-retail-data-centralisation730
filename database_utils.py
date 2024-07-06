@@ -109,6 +109,8 @@ class DatabaseConnector:
             yaml file's location 
         '''
         creds = self.read_db_creds(yaml_file) 
+        if creds is None:
+            raise ValueError("Credentials are not provided or could not be loaded.")
         engine = create_engine(f"{creds['DATABASE_TYPE_LOCAL']}+{creds['DBAPI_LOCAL']}://{creds['USER_LOCAL']}:{creds['PASSWORD_LOCAL']}@{creds['HOST_LOCAL']}:{creds['PORT_LOCAL']}/{creds['DATABASE_LOCAL']}")
         engine.connect()
         df.to_sql(table_name, engine, if_exists='replace', index=False)
