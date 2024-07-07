@@ -229,7 +229,6 @@ class DataCleaning:
         self.clean_store_type(df)
         self.replace_string(df, 'continent', 'ee', '')
         self.replace_string(df, 'country_code', 'GG', 'G')
-        self.clean_country_code(df)
         df.dropna(subset=['staff_numbers', 'opening_date', 'country_code', 'continent'], inplace=True)
         return df
     

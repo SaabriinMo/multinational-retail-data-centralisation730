@@ -18,24 +18,43 @@ class DataExtractor:
     ----------
     header: dict
         a private dictionary variable containing the API key
+
+    __store_number: string
+        a private string containing the url for getting the total number of stores
+    
+    __store_url: string
+        a private string containing the url for the store data
+
+    __s3_bucket_name: string
+        a private string containing the s3 bucket url
+
+    __s3_file : string
+        a private string containing the file name inside the s3 bucket
+
+    __card_data: string
+        a private string containing the url for getting the card_details data
+    
+    __dates_data: sting
+         a private string containing the url for getting the data events data
+    
     Methods:
     -------
     read_rds_table(table_name, engine)
         gets the data from the aws RDS database based on the table name
     
-    retrieve_pdf_data(url)
+    retrieve_pdf_data()
         gets the data from the url pdf link. the pdf is in an AWS S3 bucket
     
     extract_from_s3()
         Get data from s3 bucket 
 
-    list_number_of_stores(url)
+    list_number_of_stores()
         gets the list of stores from the url
     
     retrieve_stores_data(number_of_stores)
         retrieve each store data and store the results as a dataframe
 
-    get_date_data(url)
+    get_date_data()
         retrieve the date data from the url (the data is in a json format) and store the results in
         a dataframe
     '''
@@ -46,6 +65,8 @@ class DataExtractor:
         self.__store_url = self.read_yaml_file("creds/api_creds.yaml")['retrieve_store_data']
         self.__s3_bucket_name = self.read_yaml_file("creds/api_creds.yaml")['data_handling_s3']
         self.__s3_file = self.read_yaml_file("creds/api_creds.yaml")['file_s3']
+        self.__card_data = self.read_yaml_file("creds/api_creds.yaml")['cards_details_data']
+        self.__dates_data = self.read_yaml_file("creds/api_creds.yaml")['dates_data']
 
     def read_yaml_file(self, api_yaml):
         try:
@@ -79,7 +100,7 @@ class DataExtractor:
          df = pd.read_sql_table(table_name, engine)
          return df
     
-    def retrieve_pdf_data(self, url):
+    def retrieve_pdf_data(self):
         '''
         This function gets the data from the url thats in a pdf format 
         and store the results as a pandas dataframe
@@ -96,7 +117,7 @@ class DataExtractor:
                 the dataframe to be cleaned
         
         '''
-        multiple_df = tabula.read_pdf(url, pages='all')
+        multiple_df = tabula.read_pdf(self.__card_data, pages='all')
         df = pd.concat(multiple_df)
         return df
         
@@ -172,7 +193,7 @@ class DataExtractor:
         df = pd.DataFrame(list_of_stores)
         return df
     
-    def get_date_data(self, url):
+    def get_date_data(self):
         '''
         This function gets the data relating to dates from url and returns a dataframe 
 
@@ -187,7 +208,7 @@ class DataExtractor:
                 the dataframe to be cleaned
         '''
         try:
-            date_event_data = requests.get(url)
+            date_event_data = requests.get(self.__dates_data)
             df = pd.DataFrame()
             for key, values in date_event_data.json().items():
                 df_temp = pd.DataFrame.from_dict(values, orient='index', columns=[key])
@@ -208,5 +229,5 @@ if __name__ == "__main__":
     # print(number_of_stores)
     #print(number_of_stores)
     #print(data_extractor.retrieve_stores_data())
-    df = data_extractor.extract_from_s3()
+    df = data_extractor.get_date_data()
     print(df)
