@@ -33,17 +33,17 @@ def main():
     stores_df = data_cleaning.called_clean_store_data(stores_df)
     # nulls = stores_df[stores_df.isnull().any(axis=1)]
 
-    # products data and clean it
+    # get products data and clean it
     product_data_df = data_extraction.extract_from_s3()
     product_data_df = data_cleaning.clean_products_data(product_data_df)
     product_nulls = product_data_df[product_data_df.isnull().any(axis=1)]
 
-    # clean order table
+    # get order data and clean it
     order_data_df = data_extraction.read_rds_table(table_names[3], engine)
     order_data_df = data_cleaning.clean_orders_data(order_data_df)
     # order_nulls = order_data_df[order_data_df.isnull().any(axis=1)]
 
-    # clean date event table
+    # get date event and clean it 
     date_event_df = data_extraction.get_date_data()
     date_event_df = data_cleaning.clean_event_date(date_event_df)
     # date_nulls = date_event_df[date_event_df.isnull().any(axis=1)]

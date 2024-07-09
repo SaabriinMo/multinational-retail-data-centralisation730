@@ -62,7 +62,7 @@ The other 4 table are linked to the orders table through Primary/Foreign key
 ![ERD](img/sales_database.png)
 
 ## Data Analysis
-Queries were written to analyse and answer key questions on business performance.
+Queries were written to analyse and answer key questions about the business.
 
 You'll find the queries under [```analysis.sql```](queries/analysis.sql)
 
@@ -92,7 +92,11 @@ conda env create -f environment.yml
 ```
 
 ### For pip users:
-to be contiuned 
+run the following commands to create the mrdc environment
+
+```bash
+./env_setup_for_pip_users.sh
+```
 
 ## Usage instructions
 
